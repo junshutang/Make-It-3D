@@ -11,7 +11,7 @@
 ## Demo
 
 <center class="half">
-    <img src="demo/teddy.png" width="200"/><img src="demo/teddy-rgb.gif" width="200"/><img src="demo/teddy-normal.gif" width="200"/><img src="demo/teddy-2.png" width="200"/><img src="demo/teddy-2-rgb.gif" width="200"/><img src="demo/teddy-2-normal.gif" width="200"/>
+    <img src="demo/teddy.png" width="100"/><img src="demo/teddy-rgb.gif" width="100"/><img src="demo/teddy-normal.gif" width="100"/><img src="demo/teddy-2.png" width="100"/><img src="demo/teddy-2-rgb.gif" width="100"/><img src="demo/teddy-2-normal.gif" width="100"/>
 </center>
 
 ## Installation
