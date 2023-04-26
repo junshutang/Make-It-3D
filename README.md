@@ -9,9 +9,8 @@
 >In this work, we investigate the problem of creating high-fidelity 3D content from only a single image. This is inherently challenging: it essentially involves estimating the underlying 3D geometry while simultaneously hallucinating unseen textures. To address this challenge, we leverage prior knowledge from a well-trained 2D diffusion model to act as 3D-aware supervision for 3D creation. Our approach, Make-It-3D, employs a two-stage optimization pipeline: the first stage optimizes a neural radiance field by incorporating constraints from the reference image at the frontal view and diffusion prior at novel views; the second stage transforms the coarse model into textured point clouds and further elevates the realism with diffusion prior while leveraging the high-quality textures from the reference image. Extensive experiments demonstrate that our method outperforms prior works by a large margin, resulting in faithful reconstructions and impressive visual quality. Our method presents the first attempt to achieve high-quality 3D creation from a single image for general objects and enables various applications such as text-to-3D creation and texture editing.
 
 ## Demo
-
 <center class="half">
-    <img src="demo/teddy.png" width="100"/><img src="demo/teddy-rgb.gif" width="100"/><img src="demo/teddy-normal.gif" width="100"/><img src="demo/teddy-2.png" width="100"/><img src="demo/teddy-2-rgb.gif" width="100"/><img src="demo/teddy-2-normal.gif" width="100"/>
+    <img src="demo/teddy.png" width="100"><img src="demo/teddy-rgb.gif" width="100"><img src="demo/teddy-normal.gif" width="100"><img src="demo/teddy-2.png" width="100"><img src="demo/teddy-2-rgb.gif" width="100"><img src="demo/teddy-2-normal.gif" width="100">
 </center>
 
 ## Installation
