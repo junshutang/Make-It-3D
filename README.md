@@ -77,3 +77,5 @@ If you find this code helpful for your research, please cite:
 }
 ```
 
+## Acknowledgments
+This code borrows heavily from [Stable-Dreamfusion](https://github.com/ashawkey/stable-dreamfusion). 
