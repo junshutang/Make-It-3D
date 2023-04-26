@@ -15,7 +15,7 @@
 
 ## SAM + Make-It-3D
 <div class="half">
-    <img src="demo/corgi-demo.png" height="200"><img src="demo/corgi.png" width="200"><img src="demo/corgi-rgb.gif" width="200"><img src="demo/corgi-normal.gif" width="200">
+    <img src="demo/corgi-demo.png" height="170"><img src="demo/corgi.png" width="170"><img src="demo/corgi-rgb.gif" width="170"><img src="demo/corgi-normal.gif" width="170">
 </div>
 
 ## Installation
