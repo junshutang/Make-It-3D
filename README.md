@@ -13,6 +13,11 @@
     <img src="demo/teddy.png" width="128"><img src="demo/teddy-rgb.gif" width="128"><img src="demo/teddy-normal.gif" width="128"><img src="demo/teddy-2.png" width="128"><img src="demo/teddy-2-rgb.gif" width="128"><img src="demo/teddy-2-normal.gif" width="128">
 </div>
 
+## SAM + Make-It-3D
+<div class="half">
+    <img src="demo/corgi-demo.png" height="200"><img src="demo/corgi.png" width="200"><img src="demo/corgi-rgb.gif" width="200"><img src="demo/corgi-normal.gif" width="200">
+</div>
+
 ## Installation
 Install with pip:
 ```
