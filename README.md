@@ -1,4 +1,4 @@
-# Make-It-3D: High-Fidelity 3D Creation from A Single Image with Diffusion Prior (not complete)
+# Make-It-3D: High-Fidelity 3D Creation from A Single Image with Diffusion Prior
 ![Teaser](teaser.png)
 ### [Project page](https://make-it-3d.github.io/) |   [Paper](https://arxiv.org/abs/2303.14184) 
 <!-- <br> -->
