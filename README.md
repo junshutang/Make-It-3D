@@ -48,7 +48,7 @@ We first optimize the scene under frontal camera views.
 ```
     python main.py --workspace ${NAME} --ref_path "${IMGPATH}" --phi_range 135 225 --iters 2000 
 ```
-Then we spread the camera view samples to full 360°.
+Then we spread the camera view samples to full 360°. If you need a prompt condition "back view", you can use the command `--need_back`.
 ```
     python main.py --workspace ${NAME} --ref_path "${IMGPATH}" --phi_range 0 360 --albedo_iters 3000 --iters 5000 --final
 ```
