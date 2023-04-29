@@ -41,7 +41,7 @@ Training requirements
   ```
   Download the pretrained model [dpt_hybrid](https://github.com/intel-isl/DPT/releases/download/1_0/dpt_hybrid-midas-501f0c75.pt), and put it in `dpt_weights`. 
 - [BLIP2](https://arxiv.org/abs/2301.12597). We use BLIP2 to generate a caption. You can also modify the conditioned text using `--text "{TEXT}"`.
-- [Stable Diffusion](https://huggingface.co/models?other=stable-diffusion). We use diffusion prior is from a pretrained 2D pretrained Stable Diffusion 2.0 model. To start with, you may need a huggingface [token](https://huggingface.co/settings/tokens) to access the model, or use `huggingface-cli login` command.
+- [Stable Diffusion](https://huggingface.co/models?other=stable-diffusion). We use diffusion prior from a pretrained 2D Stable Diffusion 2.0 model. To start with, you may need a huggingface [token](https://huggingface.co/settings/tokens) to access the model, or use `huggingface-cli login` command.
 ## Coarse Stage Training 
 We use progressive training strategy to generate a full 360° 3D geometry. Run the command and modify the workspace name `NAME` and the path of the reference image `IMGPATH`.
 We first optimize the scene under frontal camera views. 
