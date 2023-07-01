@@ -20,6 +20,7 @@ if __name__ == '__main__':
     parser.add_argument('--negative', default='', type=str, help="negative text prompt")
     parser.add_argument('--test', action='store_true', help="test mode")
     parser.add_argument('--final', action='store_true', help="final train mode")
+    parser.add_argument('--refine', action='store_true', help="refine mode")
     parser.add_argument('--save_mesh', action='store_true', help="export an obj mesh with texture")
     parser.add_argument('--eval_interval', type=int, default=10, help="evaluate on the valid set every interval epochs")
     parser.add_argument('--workspace', type=str, default='workspace')
@@ -34,6 +35,7 @@ if __name__ == '__main__':
 
     ### training options
     parser.add_argument('--iters', type=int, default=10000, help="training iters")
+    parser.add_argument('--refine_iters', type=int, default=3000, help="training iters")
     parser.add_argument('--lr', type=float, default=1e-3, help="max learning rate")
     parser.add_argument('--min_lr', type=float, default=1e-4, help="minimal learning rate")
     parser.add_argument('--ckpt', type=str, default='latest')
@@ -225,7 +227,7 @@ if __name__ == '__main__':
         
         if opt.save_mesh:
             trainer.save_mesh(resolution=256)
-
+            
     else:
         
         train_loader = NeRFDataset(opt, device=device, type='train', H=opt.h, W=opt.w, size=100).dataloader()
@@ -236,7 +238,14 @@ if __name__ == '__main__':
         # also test
         if opt.final:
             test_loader = NeRFDataset(opt, device=device, type='test', H=opt.H, W=opt.W, size=64).dataloader()
-            trainer.test(test_loader, write_video=True)
+            trainer.test(test_loader, write_image=False, write_video=True)
         
         if opt.save_mesh:
             trainer.save_mesh(resolution=256)
+            
+        if opt.refine:
+            mv_loader = NeRFDataset(opt, device=device, type='gen_mv', H=opt.H, W=opt.W, size=33).dataloader()
+            test_loader = NeRFDataset(opt, device=device, type='test', H=opt.H, W=opt.W, size=64).dataloader()
+            trainer.test(mv_loader, save_path=os.path.join(opt.workspace, 'mvimg'), write_image=True, write_video=False)
+            trainer.refine(os.path.join(opt.workspace, 'mvimg'), opt.refine_iters, test_loader)
+        

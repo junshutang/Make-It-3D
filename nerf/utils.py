@@ -23,7 +23,8 @@ import torch.nn.functional as F
 import torch.distributed as dist
 from torch.utils.data import Dataset, DataLoader
 from torchvision.utils import save_image
-
+from nerf.refine_utils import *
+from nerf.unet import UNet
 import trimesh
 import mcubes
 from rich.console import Console
@@ -32,8 +33,9 @@ from torch_ema import ExponentialMovingAverage
 import clip
 import torchvision.transforms as T
 from torchmetrics import PearsonCorrCoef
-
+import contextual_loss as cl
 from packaging import version as pver
+from copy import deepcopy
 
 def custom_meshgrid(*args):
     # ref: https://pytorch.org/docs/stable/generated/torch.meshgrid.html?highlight=meshgrid#torch.meshgrid
@@ -449,6 +451,11 @@ class Trainer(object):
         text_z = text_z / text_z.norm(dim=-1, keepdim=True)
         loss = - (image_z_1 * text_z).sum(-1).mean()
         return loss
+    
+    def img_cx_loss(self, cx_model, rgb1, rgb2):
+        loss = cx_model(rgb1, rgb2)
+        return loss
+    
     ### ------------------------------	
 
     def train_step(self, data):
@@ -661,7 +668,7 @@ class Trainer(object):
         self.evaluate_one_epoch(loader, name)
         self.use_tensorboardX = use_tensorboardX
 
-    def test(self, loader, save_path=None, name=None, write_video=True):
+    def test(self, loader, save_path=None, name=None, write_image=True, write_video=True):
 
         if save_path is None:
             save_path = os.path.join(self.workspace, 'result')
@@ -716,26 +723,227 @@ class Trainer(object):
                 pred_depth = preds_depth[0].detach().cpu().numpy()
                 pred_depth = (pred_depth * 1000.).astype(np.uint16)
 
-                cv2.imwrite(os.path.join(save_path, f'{name}_{i:04d}_rgb.png'), cv2.cvtColor(pred, cv2.COLOR_RGB2BGR))
-                if preds_normal is not None:
-                    cv2.imwrite(os.path.join(save_path, f'{name}_{i:04d}_normal.png'), cv2.cvtColor(preds_normal, cv2.COLOR_RGB2BGR))
-                cv2.imwrite(os.path.join(save_path, f'{name}_{i:04d}_depth.png'), pred_depth)
-                cv2.imwrite(os.path.join(save_path, f'{name}_{i:04d}_mask.png'), mask)
+                if write_image:
+                    cv2.imwrite(os.path.join(save_path, f'{name}_{i:04d}_rgb.png'), cv2.cvtColor(pred, cv2.COLOR_RGB2BGR))
+                    if preds_normal is not None:
+                        cv2.imwrite(os.path.join(save_path, f'{name}_{i:04d}_normal.png'), cv2.cvtColor(preds_normal, cv2.COLOR_RGB2BGR))
+                    cv2.imwrite(os.path.join(save_path, f'{name}_{i:04d}_depth.png'), pred_depth)
+                    cv2.imwrite(os.path.join(save_path, f'{name}_{i:04d}_mask.png'), mask)
+                
                 pbar.update(loader.batch_size)
 
         if write_video:
             all_preds = np.stack(all_preds, axis=0)
             all_preds_normal = np.stack(all_preds_normal, axis=0)
-            all_preds_depth = np.stack(all_preds_depth, axis=0)
             imageio.mimwrite(os.path.join(save_path, f'{name}_normal.mp4'), all_preds_normal, fps=25, quality=8, macro_block_size=1)
             imageio.mimwrite(os.path.join(save_path, f'{name}_rgb.mp4'), all_preds, fps=25, quality=8, macro_block_size=1)
-            imageio.mimwrite(os.path.join(save_path, f'{name}_depth.mp4'), all_preds_depth, fps=25, quality=8, macro_block_size=1)
         
         all_poses = np.stack(all_poses, axis=0)
         np.save(os.path.join(save_path, f'{name}_poses.npy'), all_poses)
 
         self.log(f"==> Finished Test.")
     
+    
+    def refine(self, load_dir, train_iters, test_loader):
+        
+        load_data_folder = load_dir
+        outputdir = load_dir.replace("mvimg", "refine")  
+        os.makedirs(outputdir,exist_ok=True)
+        text = self.opt.text
+        image_path = self.opt.ref_path
+        fov = self.opt.fov
+        H, W = self.opt.H, self.opt.W
+        device = torch.device('cuda') 
+        # Camera intrincs and extrincs
+        focal = 1 / (2 * np.tan(np.deg2rad(fov) / 2))
+        K = np.array([[focal*W, 0, 0.5*W], [0, focal*H, 0.5*H], [0, 0, 1]])
+        cam_files = sorted(glob.glob(load_data_folder+'/*poses.npy'))
+        cam_file = cam_files[0]
+        cam2world_list = np.load(cam_file)
+        cam2world_cano = cam2world_list[(cam2world_list.shape[0]-1)//2]
+        image_size = [H, W]
+        radius = 2 #8 # points radius in pixel coordinate
+        ppp = 8 # points per pixels, for z_buffer
+        
+        gt_rgb = imageio.imread(image_path)/255.
+        gt_rgb = cv2.resize(gt_rgb[:,:,:3],(H, W))
+        
+        # load images
+        depth_files = sorted(glob.glob(load_data_folder+'/*depth.png'))
+        mask_files = sorted(glob.glob(load_data_folder+'/*mask.png'))
+        rgb_files = sorted(glob.glob(load_data_folder+'/*rgb.png'))
+        
+        vertices_cano, vertices_color_cano, vertices_novel, vertices_color_novel = load_views(gt_rgb, rgb_files, depth_files, mask_files, cam2world_list, H, W, K, radius, ppp, outputdir, device)
+        
+        #### colorize point cloud
+        # init zeros
+        all_v = np.concatenate((vertices_cano, vertices_novel), axis=0)
+        all_v_color = np.concatenate((vertices_color_cano, vertices_color_novel), axis=0)
+        
+        # Save or load
+        print("###### Save point cloud ######")
+        np.save(outputdir + '/vertices_cano.npy', vertices_cano)
+        np.save(outputdir + '/vertices_color_cano.npy', vertices_color_cano)
+        np.save(outputdir + '/vertices_novel.npy', vertices_novel)
+        np.save(outputdir + '/vertices_color_novel.npy', vertices_color_novel)
+        
+        # refine stage optimization with SDS loss
+        print("###### Optimization with SDS loss ######")
+        K = torch.tensor((K), device=device).float()
+        gt_rgb = imageio.imread(image_path)/255.
+        gt_mask = cv2.resize(gt_rgb[:,:,3:],(H, W))        
+        gt_rgb = cv2.resize(gt_rgb[:,:,:3],(H, W))
+        gt_rgb = torch.Tensor(gt_rgb[None,...]).permute(0,3,1,2)
+        gt_rgb = gt_rgb.to(device)
+        
+        kernel = np.ones(((5,5)), np.uint8) ##11
+        gt_mask = cv2.erode(gt_mask,kernel,iterations=1)
+        gt_mask = torch.Tensor(gt_mask).unsqueeze(0).unsqueeze(1)
+        gt_mask = gt_mask.to(device)
+        
+        train_outputdir = outputdir+'/train/'
+        os.makedirs(train_outputdir,exist_ok=True)
+        
+        radius = float(radius) / float(image_size[0]) * 2.0
+        unet = UNet(num_input_channels=3+16).to(device)
+        unet.train()
+        cx_model = cl.ContextualLoss(use_vgg=True, vgg_layer='relu5_4').to(device)
+        
+        vertices_cano = torch.tensor((vertices_cano), requires_grad=False, device=device)
+        vertices_novel = torch.tensor((vertices_novel), requires_grad=False, device=device)
+        vertices_color_cano = torch.tensor((vertices_color_cano), requires_grad=False, device=device)
+        
+        feat_cano = torch.nn.Parameter(torch.randn((vertices_color_cano.shape[0], 16), requires_grad=True, device=device))
+        vertices_color_cano = torch.nn.Parameter(torch.tensor((vertices_color_cano), requires_grad=True, device=device))
+        vertices_color_novel = torch.nn.Parameter(torch.tensor((vertices_color_novel), requires_grad=True, device=device))
+        feat_novel = torch.nn.Parameter(torch.randn((vertices_color_novel.shape[0], 16), requires_grad=True, device=device))
+        bg_feat = torch.nn.Parameter(torch.ones((1, 19, 1, 1), requires_grad=True, device=device))
+        
+        vertices_color_novel_origin = deepcopy(vertices_color_novel).to(device)
+        vertices_color_novel_origin.requires_grad = False
+        vertices_color_cano_origin = deepcopy(vertices_color_cano).to(device)
+        vertices_color_cano_origin.requires_grad = False
+        
+        params = [{'params': [vertices_color_novel], 'lr': 0.001}, \
+                {'params': [vertices_color_cano], 'lr': 0.001}, \
+                {'params': [feat_novel], 'lr': 0.001}, \
+                {'params': [feat_cano], 'lr': 0.001}, \
+                {'params': [bg_feat], 'lr': 0.001}, \
+                {'params': unet.parameters(), 'lr': 0.001}]
+        
+        point_optimizer = torch.optim.Adam(params, betas=(0.9, 0.99), eps=1e-15)
+        point_scheduler = torch.optim.lr_scheduler.LambdaLR(point_optimizer, lambda iter: 0.1 ** min(iter / 1000, 1))
+        max_pool = torch.nn.MaxPool2d(kernel_size=5, stride=1, padding=2)
+
+        pbar = tqdm.tqdm(range(train_iters))
+        for i in pbar:
+            rand_c2w, is_front, is_large = fix_poses(i, device, radius_range=self.opt.radius_range, theta_range=self.opt.theta_range, phi_range=self.opt.phi_range)
+            text_z = self.text_z[0]
+            ref_text = self.text[0]
+            
+            cam2world = rand_c2w[0,:,:]
+            world2cam = torch.linalg.inv(cam2world)
+            all_v = torch.cat((vertices_cano, vertices_novel),dim=0).float()
+            all_xy_cano = torch.cat((vertices_color_cano, feat_cano),dim=-1).float()
+            all_xy_novel = torch.cat((vertices_color_novel, feat_novel),dim=-1).float()
+            all_v_color = torch.cat((all_xy_cano, all_xy_novel),dim=0).float()
+    
+            # Unet
+            scale = 1
+            pred_list = []
+            for j in range(3):
+                h = H // scale
+                w = W // scale
+                image_size = (h, w)
+                K_ = np.array([[focal*w, 0, 0.5*w], [0, focal*h, 0.5*h], [0, 0, 1]])
+                K_ = torch.tensor((K_), device=device).float()
+                pred_rgb = render_point(all_v, all_v_color, h, w, K_, world2cam, image_size, radius, ppp, bg_feat=bg_feat)
+                scale = scale * 2
+                pred_list.append(pred_rgb)
+            pred_rgb = unet(pred_list)
+
+            H, W = 800, 800
+            image_size = (H, W)
+            v_mask_color = torch.ones_like(all_v).float().to(device)
+            pred_mask = render_point(all_v, v_mask_color, H, W, K, world2cam, image_size, radius, ppp)
+            pred_mask_dilate = max_pool(pred_mask)
+
+            if i % 50 == 0:
+                save_image(pred_rgb, os.path.join(train_outputdir,  f'{i}.png'))
+                # save_image(pred_mask_dilate, os.path.join(train_outputdir,  f'{i}_mask.png'))
+            
+            if is_front:
+                clip_loss = 1000 * self.img_loss(pred_rgb*gt_mask, gt_rgb*gt_mask)
+                bg_loss = 0
+            else:
+                clip_loss, de_imgs = self.guidance.train_step(text_z, pred_rgb, clip_model=self.clip_model, 
+                    ref_text=ref_text, islarge=False, ref_rgb=gt_rgb, guidance_scale=5)
+                clip_loss += 10 * self.img_clip_loss(pred_rgb, gt_rgb)
+                cx_loss = self.img_cx_loss(cx_model, pred_rgb, gt_rgb)
+                clip_loss += cx_loss
+            
+            # background regularization
+            bg_loss = 1e-3 * (1 - pred_rgb * (1 - pred_mask_dilate)).sum()
+            reg_loss = torch.nn.MSELoss()(vertices_color_novel, vertices_color_novel_origin) * 1e3 + torch.nn.MSELoss()(vertices_color_cano, vertices_color_cano_origin) * 1e5
+            loss = clip_loss + reg_loss + bg_loss
+            
+            pbar.set_description((f"loss: {loss.item():.4f}; reg_loss: {reg_loss.item():.4f}; bg_loss: {bg_loss.item():.4f}"))
+            
+            point_optimizer.zero_grad()
+            loss.backward()
+            point_optimizer.step()
+
+            if i % 1000 == 0:
+                torch.save(all_v, outputdir + f'/{i}_v_unet.pt')
+                torch.save(all_v_color, outputdir + f'/{i}_v_color_unet.pt')
+                torch.save(bg_feat, outputdir + f'/{i}_bg_unet.pt')
+                torch.save({'model_state_dict': unet.state_dict(),
+                        'optimizer_state_dict': point_optimizer.state_dict(),
+                        }, outputdir + f'/{i}_unet.pth')
+        
+        torch.save(all_v, outputdir + f'/end_v_unet.pt')
+        torch.save(all_v_color, outputdir + f'/end_v_color_unet.pt')
+        torch.save(bg_feat, outputdir + f'/end_bg_unet.pt')
+        torch.save({'model_state_dict': unet.state_dict(),
+                'optimizer_state_dict': point_optimizer.state_dict(),
+                }, outputdir + f'/end_unet.pth')
+        
+        # unet.eval()
+        # evaluation
+        all_transformed_src_alpha = []
+        white_bg = torch.ones((1, 19, 1, 1)).to(device)
+        white_bg.requires_grad=False
+        img_outdir = os.path.join(outputdir, "results")
+        os.makedirs(img_outdir, exist_ok=True)
+        
+        # test
+        print("###### Finel Refine Rendering ######")
+        pbar = tqdm.tqdm(total=len(test_loader) * test_loader.batch_size, bar_format='{percentage:3.0f}% {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}]')
+        for i, data in enumerate(test_loader):
+            cam2world = data['poses'][0].detach().cpu().numpy()
+            world2cam = np.linalg.inv(cam2world)
+            world2cam = torch.Tensor(world2cam).to(device)
+            scale = 1
+            pred_list = []
+            for j in range(3):
+                h = H // scale
+                w = W // scale
+                image_size = (h, w)
+                K_ = np.array([[focal*w, 0, 0.5*w], [0, focal*h, 0.5*h], [0, 0, 1]])
+                K_ = torch.tensor((K_), device=device).float()
+                pred_rgb = render_point(all_v, all_v_color, h, w, K_, world2cam, image_size, radius, ppp, bg_feat=bg_feat)
+                scale = scale * 2
+                pred_list.append(pred_rgb)
+            pred_rgb = unet(pred_list)
+            transformed_src_alpha = np.array(pred_rgb[0].permute(1,2,0).detach().cpu().numpy() * 255,dtype=np.uint8)
+            save_image(pred_rgb, img_outdir+f'/render_unet_{i:04d}.png')
+            all_transformed_src_alpha.append(transformed_src_alpha)
+            pbar.update(test_loader.batch_size)
+        
+        all_transformed_src_alpha = np.stack(all_transformed_src_alpha, axis=0)
+        imageio.mimwrite(img_outdir+'/render_unet_img_clip.mp4', all_transformed_src_alpha, fps=25, quality=8, macro_block_size=1)
+
+
     def train_one_epoch(self, loader):
         self.log(f"==> Start Training {self.workspace} Epoch {self.epoch}, lr={self.optimizer.param_groups[0]['lr']:.6f} ...")
 

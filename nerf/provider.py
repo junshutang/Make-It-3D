@@ -257,6 +257,7 @@ class NeRFDataset:
 
         self.training = self.type in ['train', 'all']
         self.testing = self.type in ['test']
+        self.gen_mv = self.type in ['gen_mv']
         self.cx = self.H / 2
         self.cy = self.W / 2
 
@@ -272,20 +273,17 @@ class NeRFDataset:
             else:
                 fov = random.random() * (self.opt.fovy_range[1] - self.opt.fovy_range[0]) + self.opt.fovy_range[0]
             
-        # elif self.testing:
-        #     theta = [80.0, 90.0, 100.0]
-        #     length = self.size // 3
-        #     i = int(index[0] // length)
-        #     if i % 2  == 0:
-        #         phi = ((index[0]%length)/(length -1)) * (self.opt.phi_range[1]-self.opt.phi_range[0]) + self.opt.phi_range[0]
-        #     else:
-        #         phi = ((index[0]%length)/(length -1)) * (self.opt.phi_range[0]-self.opt.phi_range[1]) + self.opt.phi_range[1]
-        #     theta = theta[i]
+        elif self.gen_mv:
+            theta = [80.0, 90.0, 100.0]
+            length = self.size // 3
+            i = int(index[0] // length)
+            phi = ((index[0]%length)/(length -1)) * (self.opt.phi_range[0]-self.opt.phi_range[1]) + self.opt.phi_range[1]
+            theta = theta[i]
             
-        #     thetas, phis, poses = circle_poses(self.device, radius=1.0, theta=theta, phi=phi)
-        #     is_front = False
-        #     is_large = False
-        #     fov = self.fov     
+            thetas, phis, poses = circle_poses(self.device, radius=1.0, theta=theta, phi=phi)
+            is_front = False
+            is_large = False
+            fov = self.fov      
         else:
             phi = (index[0] / self.size) * (self.opt.phi_range[1]-self.opt.phi_range[0]) + self.opt.phi_range[0]
             thetas, phis, poses = circle_poses(self.device, radius=1.0, theta=90, phi=phi)

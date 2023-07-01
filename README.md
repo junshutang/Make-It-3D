@@ -18,6 +18,12 @@
     <img src="demo/corgi-demo.png" height="170"><img src="demo/corgi.png" width="170"><img src="demo/corgi-rgb.gif" width="170"><img src="demo/corgi-normal.gif" width="170">
 </div>
 
+## Todo
+- [x] Release coarse stage training code 
+- [x] Release all training code (coarse + refine stage)
+- [ ] Release the test benchmark for all results in the paper
+- [ ] Release more applications
+
 ## Installation
 Install with pip:
 ```
@@ -27,6 +33,7 @@ Install with pip:
     pip install git+https://github.com/huggingface/diffusers.git
     pip install git+https://github.com/huggingface/huggingface_hub.git
     pip install git+https://github.com/facebookresearch/pytorch3d.git
+    pip install git+https://github.com/S-aiueo32/contextual_loss_pytorch.git
 ```
 Other dependencies:
 ```
@@ -40,11 +47,11 @@ Training requirements
   mkdir dpt_weights
   ```
   Download the pretrained model [dpt_hybrid](https://github.com/intel-isl/DPT/releases/download/1_0/dpt_hybrid-midas-501f0c75.pt), and put it in `dpt_weights`. 
-- [BLIP2](https://arxiv.org/abs/2301.12597). We use BLIP2 to generate a caption. You can also modify the conditioned text using `--text "{TEXT}"`.
+- [BLIP2](https://arxiv.org/abs/2301.12597). We use BLIP2 to generate a caption. You can also modify the conditioned text using `--text "{TEXT}"` which will greatly reduce time.
 - [Stable Diffusion](https://huggingface.co/models?other=stable-diffusion). We use diffusion prior from a pretrained 2D Stable Diffusion 2.0 model. To start with, you may need a huggingface [token](https://huggingface.co/settings/tokens) to access the model, or use `huggingface-cli login` command.
-## Coarse Stage Training 
-We use progressive training strategy to generate a full 360° 3D geometry. Run the command and modify the workspace name `NAME` and the path of the reference image `IMGPATH`.
-We first optimize the scene under frontal camera views. 
+## Training 
+### Coarse stage
+We use progressive training strategy to generate a full 360° 3D geometry. Run the command and modify the workspace name `NAME` and the path of the reference image `IMGPATH`. We first optimize the scene under frontal camera views. 
 ```
     python main.py --workspace ${NAME} --ref_path "${IMGPATH}" --phi_range 135 225 --iters 2000 
 ```
@@ -52,18 +59,24 @@ Then we spread the camera view samples to full 360°. If you need a prompt condi
 ```
     python main.py --workspace ${NAME} --ref_path "${IMGPATH}" --phi_range 0 360 --albedo_iters 3000 --iters 5000 --final
 ```
-## Refine Stage Training
+### Refine stage
 
-Coming soon...
+After the coarse stage training, now you can easily use the command `--refine` for refine stage training. We optimize the scene under frontal camera views. 
+```
+    python main.py --workspace ${NAME} --ref_path "${IMGPATH}" --phi_range 135 225 --refine
+```
+You can modify the value of training iterations using the command `--refine_iters`.
+```
+    python main.py --workspace ${NAME} --ref_path "${IMGPATH}" --phi_range 135 225 --refine_iters 3000 --refine
+```
+**Note:** We additionally use `contextual loss` on the refine stage, we find it helps to sharpen the texture. You may need to install [contextual_loss_pytorch](https://github.com/S-aiueo32/contextual_loss_pytorch) before training.
+```
+    pip install git+https://github.com/S-aiueo32/contextual_loss_pytorch.git
+```
 
 ## Important Note
 Hallucinating 3D geometry and generating novel views from a single image of general genre is a challenging task. While our method demonstrates strong capability on creating 3D from most images with a centered single object, it may still encounter difficulties in reconstructing solid geometry on complex cases. **If you encounter any bugs, please feel free to contact us.**
 
-## Todo
-- [x] Release coarse stage training code 
-- [ ] Release the test benchmark for all results in the paper
-- [ ] Release all training code 
-- [ ] Release more applications
 
 
 ## Citation
