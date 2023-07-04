@@ -202,7 +202,7 @@ if __name__ == '__main__':
             mode="bicubic",
             align_corners=True,
         ) # [1, 1, 512, 512] [80~150]
-        DPT.util.io.write_depth(os.path.join(opt.workspace, opt.text.replace(" ", "_") + '_depth'), depth_prediction.squeeze().cpu().numpy(), bits=2)
+        DPT.util.io.write_depth_name(os.path.join(opt.workspace, opt.text.replace(" ", "_") + '_depth'), depth_prediction.squeeze().cpu().numpy(), bits=2)
         disparity = imageio.imread(os.path.join(opt.workspace, opt.text.replace(" ", "_") + '_depth.png')) / 65535.
         disparity = median_filter(disparity, size=5)
         depth = 1. / np.maximum(disparity, 1e-2)
