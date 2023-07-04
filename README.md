@@ -10,7 +10,7 @@
 
 
 ## Todo (Latest update: 2023/07/01)
-- [x] **Release coarse stage training code **
+- [x] **Release coarse stage training code**
 - [x] **Release all training code (coarse + [refine stage](#refine-stage))**
 - [ ] Release the test benchmark for all results in the paper
 - [ ] Release more applications
