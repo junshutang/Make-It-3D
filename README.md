@@ -59,7 +59,7 @@ We use progressive training strategy to generate a full 360° 3D geometry. Run t
 ```
 Then we spread the camera view samples to full 360°. If you need a prompt condition "back view", you can use the command `--need_back`.
 ```
-    python main.py --workspace ${NAME} --ref_path "${IMGPATH}" --phi_range 0 360 --albedo_iters 3000 --iters 5000 --final
+    python main.py --workspace ${NAME} --ref_path "${IMGPATH}" --phi_range 0 360 --albedo_iters 3500 --iters 5000 --final
 ```
 ### Refine stage
 
