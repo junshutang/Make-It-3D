@@ -61,6 +61,10 @@ Then we spread the camera view samples to full 360°. If you need a prompt condi
 ```
     python main.py --workspace ${NAME} --ref_path "${IMGPATH}" --phi_range 0 360 --albedo_iters 3000 --iters 5000 --final
 ```
+If you encounter `long geometry` issue, you can try to increase the reference fov and adjust relative setting. For example:
+```
+    python main.py --workspace ${NAME} --ref_path "${IMGPATH}" --phi_range 135 225 --iters 2000 --fov 60 --fovy_range 50 70 --blob_radius 0.2
+```
 ### Refine stage
 
 After the coarse stage training, now you can easily use the command `--refine` for refine stage training. We optimize the scene under frontal camera views. 

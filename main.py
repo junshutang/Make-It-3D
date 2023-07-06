@@ -35,7 +35,7 @@ if __name__ == '__main__':
 
     ### training options
     parser.add_argument('--iters', type=int, default=10000, help="training iters")
-    parser.add_argument('--refine_iters', type=int, default=3000, help="training iters")
+    parser.add_argument('--refine_iters', type=int, default=3000, help="refine iters")
     parser.add_argument('--lr', type=float, default=1e-3, help="max learning rate")
     parser.add_argument('--min_lr', type=float, default=1e-4, help="minimal learning rate")
     parser.add_argument('--ckpt', type=str, default='latest')
