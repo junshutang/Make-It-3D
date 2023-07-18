@@ -1,5 +1,11 @@
-# Make-It-3D: High-Fidelity 3D Creation from A Single Image with Diffusion Prior
-![Teaser](teaser.png)
+# Make-It-3D: High-Fidelity 3D Creation from A Single Image with Diffusion Prior (ICCV 2023)
+<!-- ![Teaser](teaser.png) -->
+<div class="half">
+    <img src="demo/bunny-cake.png" width="150"><img src="demo/bunny-cake-rgb.gif" width="150"><img src="demo/bunny-cake-normal.gif" width="150"><img src="demo/castle.png" width="150"><img src="demo/castle-rgb.gif" width="150"><img src="demo/castle-normal.gif" width="150">
+</div>
+<div class="half">
+    <img src="demo/house.png" width="150"><img src="demo/house-rgb.gif" width="150"><img src="demo/house-normal.gif" width="150"><img src="demo/jay.png" width="150"><img src="demo/jay-rgb.gif" width="150"><img src="demo/jay-normal.gif" width="150">
+</div>
 ### [Project page](https://make-it-3d.github.io/) |   [Paper](https://arxiv.org/abs/2303.14184) 
 <!-- <br> -->
 [Junshu Tang](https://junshutang.github.io/), [Tengfei Wang](https://tengfei-wang.github.io/), [Bo Zhang](https://bo-zhang.me/), [Ting Zhang](https://www.microsoft.com/en-us/research/people/tinzhan/), [Ran Yi](https://yiranran.github.io/), [Lizhuang Ma](https://dmcv.sjtu.edu.cn/), and [Dong Chen](https://www.microsoft.com/en-us/research/people/doch/).
@@ -9,20 +15,23 @@
 >In this work, we investigate the problem of creating high-fidelity 3D content from only a single image. This is inherently challenging: it essentially involves estimating the underlying 3D geometry while simultaneously hallucinating unseen textures. To address this challenge, we leverage prior knowledge from a well-trained 2D diffusion model to act as 3D-aware supervision for 3D creation. Our approach, Make-It-3D, employs a two-stage optimization pipeline: the first stage optimizes a neural radiance field by incorporating constraints from the reference image at the frontal view and diffusion prior at novel views; the second stage transforms the coarse model into textured point clouds and further elevates the realism with diffusion prior while leveraging the high-quality textures from the reference image. Extensive experiments demonstrate that our method outperforms prior works by a large margin, resulting in faithful reconstructions and impressive visual quality. Our method presents the first attempt to achieve high-quality 3D creation from a single image for general objects and enables various applications such as text-to-3D creation and texture editing.
 
 
+
+
+
 ## Todo (Latest update: 2023/07/01)
 - [x] **Release coarse stage training code**
 - [x] **Release all training code (coarse + [refine stage](#refine-stage))**
 - [ ] Release the test benchmark for all results in the paper
 - [ ] Release more applications
 
-## Some demo of coarse stage
+## Demo of 360° geometry
 <div class="half">
-    <img src="demo/teddy.png" width="128"><img src="demo/teddy-rgb.gif" width="128"><img src="demo/teddy-normal.gif" width="128"><img src="demo/teddy-2.png" width="128"><img src="demo/teddy-2-rgb.gif" width="128"><img src="demo/teddy-2-normal.gif" width="128">
+    <img src="demo/teddy.png" width="150"><img src="demo/teddy-rgb.gif" width="150"><img src="demo/teddy-normal.gif" width="150"><img src="demo/teddy-2.png" width="150"><img src="demo/teddy-2-rgb.gif" width="150"><img src="demo/teddy-2-normal.gif" width="150">
 </div>
 
 ## SAM + Make-It-3D
 <div class="half">
-    <img src="demo/corgi-demo.png" height="170"><img src="demo/corgi.png" width="170"><img src="demo/corgi-rgb.gif" width="170"><img src="demo/corgi-normal.gif" width="170">
+    <img src="demo/corgi-demo.png" height="200"><img src="demo/corgi.png" width="200"><img src="demo/corgi-rgb.gif" width="200"><img src="demo/corgi-normal.gif" width="200">
 </div>
 
 
