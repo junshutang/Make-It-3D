@@ -1,10 +1,10 @@
 # Make-It-3D: High-Fidelity 3D Creation from A Single Image with Diffusion Prior (ICCV 2023)
 <!-- ![Teaser](teaser.png) -->
 <div class="half">
-    <img src="demo/bunny-cake.png" width="150"><img src="demo/bunny-cake-rgb.gif" width="150"><img src="demo/bunny-cake-normal.gif" width="150"><img src="demo/castle.png" width="150"><img src="demo/castle-rgb.gif" width="150"><img src="demo/castle-normal.gif" width="150">
+    <img src="demo/bunny-cake.png" width="128"><img src="demo/bunny-cake-rgb.gif" width="128"><img src="demo/bunny-cake-normal.gif" width="128"><img src="demo/castle.png" width="128"><img src="demo/castle-rgb.gif" width="128"><img src="demo/castle-normal.gif" width="128">
 </div>
 <div class="half">
-    <img src="demo/house.png" width="150"><img src="demo/house-rgb.gif" width="150"><img src="demo/house-normal.gif" width="150"><img src="demo/jay.png" width="150"><img src="demo/jay-rgb.gif" width="150"><img src="demo/jay-normal.gif" width="150">
+    <img src="demo/house.png" width="128"><img src="demo/house-rgb.gif" width="128"><img src="demo/house-normal.gif" width="128"><img src="demo/jay.png" width="128"><img src="demo/jay-rgb.gif" width="128"><img src="demo/jay-normal.gif" width="128">
 </div>
 ### [Project page](https://make-it-3d.github.io/) |   [Paper](https://arxiv.org/abs/2303.14184) 
 <!-- <br> -->
@@ -26,12 +26,12 @@
 
 ## Demo of 360° geometry
 <div class="half">
-    <img src="demo/teddy.png" width="150"><img src="demo/teddy-rgb.gif" width="150"><img src="demo/teddy-normal.gif" width="150"><img src="demo/teddy-2.png" width="150"><img src="demo/teddy-2-rgb.gif" width="150"><img src="demo/teddy-2-normal.gif" width="150">
+    <img src="demo/teddy.png" width="128"><img src="demo/teddy-rgb.gif" width="128"><img src="demo/teddy-normal.gif" width="128"><img src="demo/teddy-2.png" width="128"><img src="demo/teddy-2-rgb.gif" width="128"><img src="demo/teddy-2-normal.gif" width="128">
 </div>
 
 ## SAM + Make-It-3D
 <div class="half">
-    <img src="demo/corgi-demo.png" height="200"><img src="demo/corgi.png" width="200"><img src="demo/corgi-rgb.gif" width="200"><img src="demo/corgi-normal.gif" width="200">
+    <img src="demo/corgi-demo.png" height="170"><img src="demo/corgi.png" width="170"><img src="demo/corgi-rgb.gif" width="170"><img src="demo/corgi-normal.gif" width="170">
 </div>
 
 
