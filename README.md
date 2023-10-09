@@ -99,11 +99,13 @@ Hallucinating 3D geometry and generating novel views from a single image of gene
 ## Citation
 If you find this code helpful for your research, please cite:
 ```
-@article{tang2023make,
-  title={Make-It-3D: High-Fidelity 3D Creation from A Single Image with Diffusion Prior},
-  author={Tang, Junshu and Wang, Tengfei and Zhang, Bo and Zhang, Ting and Yi, Ran and Ma, Lizhuang and Chen, Dong},
-  journal={arXiv preprint arXiv:2303.14184},
-  year={2023}
+@InProceedings{Tang_2023_ICCV,
+    author    = {Tang, Junshu and Wang, Tengfei and Zhang, Bo and Zhang, Ting and Yi, Ran and Ma, Lizhuang and Chen, Dong},
+    title     = {Make-It-3D: High-fidelity 3D Creation from A Single Image with Diffusion Prior},
+    booktitle = {Proceedings of the IEEE/CVF International Conference on Computer Vision (ICCV)},
+    month     = {October},
+    year      = {2023},
+    pages     = {22819-22829}
 }
 ```
 
