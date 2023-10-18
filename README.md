@@ -19,10 +19,10 @@
 
 
 
-## Todo (Latest update: 2023/07/01)
+## Todo (Latest update: 2023/10/18)
 - [x] **Release coarse stage training code**
 - [x] **Release all training code (coarse + [refine stage](#refine-stage))**
-- [ ] Release the test benchmark for all results in the paper
+- [x] **Release the [test alpha data](https://drive.google.com/drive/folders/12qDvy7dBUix_QHOVYN9GpZxC6In07GCg?usp=share_link) for all results in the paper**
 - [ ] Release more applications
 
 ## Demo of 360° geometry
